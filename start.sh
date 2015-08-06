@@ -16,11 +16,11 @@ fi
 
 # Pull down code form git for our site!
 if [ ! -z "$GIT_REPO" ]; then
-  rm -rf /usr/share/nginx/html/*
+  rm -rf /data/webroot/*
   if [ ! -z "$GIT_BRANCH" ]; then
-    git clone -b $GIT_BRANCH $GIT_REPO /usr/share/nginx/html/
+    git clone -b $GIT_BRANCH $GIT_REPO /data/webroot/
   else
-    git clone $GIT_REPO /usr/share/nginx/html/
+    git clone $GIT_REPO /data/webroot/
   fi
   chown -Rf nginx.nginx /usr/share/nginx/*
 fi
@@ -38,7 +38,7 @@ if [[ "$TEMPLATE_NGINX_HTML" != "0" ]] ; then
     value=$(echo "$i" | cut -d'=' -f2)
     if [[ "$variable" != '%s' ]] ; then
       replace='\$\$_'${variable}'_\$\$'
-      find /usr/share/nginx/html -type f -exec sed -i -e 's/'${replace}'/'${value}'/g' {} \;
+      find /data/webroot -type f -exec sed -i -e 's/'${replace}'/'${value}'/g' {} \;
     fi
   done
 fi

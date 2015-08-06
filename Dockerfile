@@ -70,16 +70,6 @@ ADD ./yaf.ini /etc/php5/mods-available/yaf.ini
 RUN ln -s /etc/php5/mods-available/yaf.ini /etc/php5/fpm/conf.d/20-yaf.ini
 RUN ln -s /etc/php5/mods-available/yaf.ini /etc/php5/cli/conf.d/20-yaf.ini
 
-# apt-get cleanup
-RUN apt-get remove --purge -y software-properties-common && \
-  apt-get autoremove -y && \
-  apt-get clean && \
-  apt-get autoclean && \
-  rm -rf /usr/share/man/?? && \
-  rm -rf /usr/share/man/??_* && \
-  rm -rf /var/lib/apt/lists/* && \
-  echo -n > /var/lib/apt/extended_states
-
 # install composer and phpunit
 RUN curl -sS https://getcomposer.org/installer | php && \
   mv composer.phar /usr/local/bin/composer && chmod +x /usr/local/bin/composer && \
@@ -103,16 +93,25 @@ ADD ./start.sh /start.sh
 RUN chmod 755 /start.sh
 
 # Setup Volume
-VOLUME ["/usr/share/nginx/html"]
+VOLUME ["/data/webroot"]
 
 # add test PHP file
-ADD ./index.php /usr/share/nginx/html/index.php
-RUN chown -Rf www-data.www-data /usr/share/nginx/html/
+ADD ./index.php /data/webroot/index.php
+RUN chown -Rf www-data.www-data /data/webroot/
 
 # Expose Ports
 EXPOSE 443
 EXPOSE 80
 
-RUN rm -rf /tmp/* /var/tmp/*
+# cleanup
+RUN apt-get remove --purge -y software-properties-common && \
+  apt-get autoremove -y && \
+  apt-get clean && \
+  apt-get autoclean && \
+  rm -rf /usr/share/man/?? && \
+  rm -rf /usr/share/man/??_* && \
+  rm -rf /var/lib/apt/lists/* && \
+  echo -n > /var/lib/apt/extended_states && \
+  rm -rf /tmp/* /var/tmp/*
 
 CMD ["/bin/bash", "/start.sh"]
