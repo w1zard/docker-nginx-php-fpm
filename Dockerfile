@@ -19,7 +19,7 @@ RUN ln -sf /bin/true /sbin/initctl
 # Let the conatiner know that there is no tty
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN curl http://mirrors.163.com/.help/sources.list.trusty > /etc/apt/sources.list
+RUN wget http://mirrors.163.com/.help/sources.list.trusty -O /etc/apt/sources.list
 # Update base image
 # Add sources for latest nginx
 # Install software requirements
