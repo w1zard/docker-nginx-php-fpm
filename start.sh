@@ -31,17 +31,42 @@ procs=$(cat /proc/cpuinfo |grep processor | wc -l)
 sed -i -e "s/worker_processes 5/worker_processes $procs/" /etc/nginx/nginx.conf
 
 # Very dirty hack to replace variables in code with ENVIRONMENT values
-if [[ "$TEMPLATE_NGINX_HTML" != "0" ]] ; then
-  for i in $(env)
-  do
-    variable=$(echo "$i" | cut -d'=' -f1)
-    value=$(echo "$i" | cut -d'=' -f2)
-    if [[ "$variable" != '%s' ]] ; then
-      replace='\$\$_'${variable}'_\$\$'
-      find /data/webroot -type f -exec sed -i -e 's/'${replace}'/'${value}'/g' {} \;
-    fi
-  done
-fi
+# if [[ "$TEMPLATE_NGINX_HTML" != "0" ]] ; then
+#   for i in $(env)
+#   do
+#     variable=$(echo "$i" | cut -d'=' -f1)
+#     value=$(echo "$i" | cut -d'=' -f2)
+#     if [[ "$variable" != '%s' ]] ; then
+#       replace='\$\$_'${variable}'_\$\$'
+#       find /data/webroot -type f -exec sed -i -e 's/'${replace}'/'${value}'/g' {} \;
+#     fi
+#   done
+# fi
 
 # Start supervisord and services
-/usr/bin/supervisord -n -c /etc/supervisord.conf
+/usr/bin/supervisord -n -c /etc/supervisord.conf &
+
+if [ "${AUTHORIZED_KEYS}" != "**None**" ]; then
+    echo "=> Found authorized keys"
+    mkdir -p /root/.ssh
+    chmod 700 /root/.ssh
+    touch /root/.ssh/authorized_keys
+    chmod 600 /root/.ssh/authorized_keys
+    IFS=$'\n'
+    arr=$(echo ${AUTHORIZED_KEYS} | tr "," "\n")
+    for x in $arr
+    do
+        x=$(echo $x |sed -e 's/^ *//' -e 's/ *$//')
+        cat /root/.ssh/authorized_keys | grep "$x" >/dev/null 2>&1
+        if [ $? -ne 0 ]; then
+            echo "=> Adding public key to /root/.ssh/authorized_keys: $x"
+            echo "$x" >> /root/.ssh/authorized_keys
+        fi
+    done
+fi
+
+if [ ! -f /.root_pw_set ]; then
+        /set_root_pw.sh
+fi
+
+exec /usr/sbin/sshd -D

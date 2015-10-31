@@ -19,6 +19,7 @@ RUN ln -sf /bin/true /sbin/initctl
 # Let the conatiner know that there is no tty
 ENV DEBIAN_FRONTEND noninteractive
 
+RUN curl http://mirrors.163.com/.help/sources.list.trusty > /etc/apt/sources.list
 # Update base image
 # Add sources for latest nginx
 # Install software requirements
@@ -28,8 +29,16 @@ RUN apt-get update && \
   add-apt-repository ppa:nginx/$nginx && \
   apt-get update && \
   apt-get upgrade -y && \
-  BUILD_PACKAGES="supervisor nginx php5-fpm git php5-mysql php5-mysql php-apc php5-curl php5-gd php5-intl php5-mcrypt php5-memcache php5-sqlite php5-tidy php5-xmlrpc php5-xsl php5-pgsql php5-mongo php-gettext php5-dev libpcre3-dev pwgen" && \
+  BUILD_PACKAGES="openssh-server supervisor nginx php5-fpm git php5-mysql php5-mysql php-apc php5-redis php5-curl php5-gd php5-intl php5-mcrypt php5-memcache php5-sqlite php5-tidy php5-xmlrpc php5-xsl php5-pgsql php5-mongo php-gettext php5-dev libpcre3-dev pwgen" && \
   apt-get -y install $BUILD_PACKAGES
+
+RUN mkdir -p /var/run/sshd && sed -i "s/UsePrivilegeSeparation.*/UsePrivilegeSeparation no/g" /etc/ssh/sshd_config && sed -i "s/UsePAM.*/UsePAM no/g" /etc/ssh/sshd_config && sed -i "s/PermitRootLogin.*/PermitRootLogin yes/g" /etc/ssh/sshd_config
+
+ADD set_root_pw.sh /set_root_pw.sh
+RUN chmod +x /*.sh
+
+ENV AUTHORIZED_KEYS **None**
+ENV ROOT_PASS **RANDOM**
 
 # tweak nginx config
 RUN sed -i -e"s/worker_processes  1/worker_processes 5/" /etc/nginx/nginx.conf && \
@@ -100,7 +109,7 @@ ADD ./index.php /data/webroot/index.php
 RUN chown -Rf www-data.www-data /data/webroot/
 
 # Expose Ports
-EXPOSE 443
+EXPOSE 22
 EXPOSE 80
 
 # cleanup
