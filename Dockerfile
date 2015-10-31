@@ -16,10 +16,10 @@ ENV LC_ALL     en_US.UTF-8
 RUN dpkg-divert --local --rename --add /sbin/initctl
 RUN ln -sf /bin/true /sbin/initctl
 
+ADD sources.list /etc/apt/sources.list
 # Let the conatiner know that there is no tty
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN wget http://mirrors.163.com/.help/sources.list.trusty -O /etc/apt/sources.list
 # Update base image
 # Add sources for latest nginx
 # Install software requirements
